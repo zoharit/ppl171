@@ -1,0 +1,61 @@
+#lang racket
+
+
+
+; Signature: append$(x,y,cont)
+; Type:[List*List->List]
+; Purpose: return a list which the arguments list from left to right. append list2 to list1
+; Pre-conditions: true
+; Tests:(append$ '(1 2) '(3 4)) => '(1 2 3 4)
+
+(define append$
+  (lambda (x y cont)
+    (if(empty? x)
+       (cont y)
+       (append$ (cdr x) y (lambda (res) (cont (cons (car x) res)))))))
+
+
+; Signature: atomic-tree2?(x)
+; Type:[T->boolean]
+; Purpose: checking if x is atomic
+; Pre-conditions: true
+; Tests:(atomic-tree2? 2)-> true.
+
+(define atomic-tree2?(lambda (x) (or(number? x)(boolean? x)(symbol? x))))
+
+; Signature: equal-trees$(tree1 tree2 success fail)
+; Type: [tree*tree*[t1->t4]*[t2->t3]->list(pair) union list(tree)]
+; Pre-Conditions: t1:tree t2:tree 
+
+
+
+
+; Signature: equal-trees$(tree1,tree2,success,faill)
+; Type:[T*T*T*T->T]
+; Purpose: The CPS procedure equal-trees$ receives a pair of leaf-valued trees, and t2, and two continuations: succ and fail and determines their structure identity as follows:If t1 and t2 have the same structure equal-trees$ returns a list of all corresponding pairs of leaves (no matter whether their values agree or not).Otherwise,equal-trees$ returns a list with the first conflicting sub-trees in depth-first traversal of the trees.; Pre-conditions: true
+; Pre-conditions: true
+; Tests:(equal-trees$ '(1 (2) (3 9)) '(7 (2) (3 5)) (lambda(x)x) (lambda(x)x))->‘((1 . 7) ((2 . 2)) ((3 . 3) (9 . 5)))
+
+
+(define equal-trees$
+  (lambda(tree1 tree2 success faill)
+  (cond((empty? tree1)
+        (if (empty? tree2)(success tree1)
+            (faill (list tree1 (car tree2)))))
+       ((empty? tree2)
+        (if (empty? tree1) (success tree1)
+            (faill (cons (car tree1) tree2))))
+       ((atomic-tree2? tree1)(if(atomic-tree2? tree2)(success(cons tree1 tree2))(faill(cons tree1 tree2))))
+      ((atomic-tree2? tree2)(if(atomic-tree2? tree1)(success(cons tree1 tree2))(faill(cons tree1 tree2))))    
+        (else
+          (if(and (pair? tree2)(pair? tree1)) (equal-trees$
+                           (car tree1)
+                           (car tree2) 
+                           (lambda(res1)
+                                      (equal-trees$ (cdr tree1)
+                                                    (cdr tree2)
+                                                    (lambda(res2)
+                                                      (success (cons res1 res2 )))faill)) 
+                                                      faill)
+                           (faill (list (if(empty? tree1) tree1 (car tree1)) (if (empty? tree2) tree2(car tree2)))))))))
+ 
